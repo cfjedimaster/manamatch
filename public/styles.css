@@ -353,6 +353,33 @@ body {
   flex-wrap: wrap;
 }
 
+.list-card {
+  text-align: left;
+}
+
+.char-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.char-card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-accent);
+  background: rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.char-card-tagline {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #fce7f3;
+}
+
 /* Features Row */
 .features-row {
   display: grid;

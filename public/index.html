@@ -119,6 +119,29 @@
         </div>
       </section>
 
+      <!-- ==================== LIST VIEW (/list) ==================== -->
+      <section id="list-view" hidden>
+        <div class="hero-card list-card">
+          <div class="picker-header">
+            <div>
+              <h1 class="picker-title">All ManaMatch Profiles</h1>
+              <p id="list-subtitle" class="picker-subtitle">
+                Every saved dating profile across Azeroth, sorted A–Z.
+              </p>
+            </div>
+          </div>
+
+          <div id="list-loading" class="loading-inline" hidden>
+            <div class="spinner spinner-sm"></div>
+            <span>Loading saved dating profiles...</span>
+          </div>
+
+          <div id="list-error" class="alert alert-error" hidden></div>
+
+          <div id="list-grid" class="characters-grid"></div>
+        </div>
+      </section>
+
       <!-- ==================== PROFILE VIEW (/:slug) ==================== -->
       <section id="profile-view" hidden>
         <!-- Loading State -->

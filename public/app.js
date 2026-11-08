@@ -84,6 +84,7 @@ function updateNavAuth(authenticated) {
 async function initHomeView() {
   document.getElementById('home-view').hidden = false;
   document.getElementById('profile-view').hidden = true;
+  document.getElementById('list-view').hidden = true;
   document.title = 'ManaMatch — Find Your Soulbound in Azeroth';
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -379,10 +380,125 @@ function renderProfileData(data, forceRefreshPhotos = false) {
   renderPhotosGrid(data.slug, p.photoPrompts || [], forceRefreshPhotos);
 }
 
+async function initListView() {
+  document.getElementById('home-view').hidden = true;
+  document.getElementById('profile-view').hidden = true;
+  document.getElementById('list-view').hidden = false;
+  document.title = 'All Profiles — ManaMatch';
+
+  const loadingEl = document.getElementById('list-loading');
+  const errorEl = document.getElementById('list-error');
+  const gridEl = document.getElementById('list-grid');
+  const subtitleEl = document.getElementById('list-subtitle');
+
+  loadingEl.hidden = false;
+  errorEl.hidden = true;
+  gridEl.innerHTML = '';
+
+  fetch('/api/characters')
+    .then((r) => r.json())
+    .then((d) => updateNavAuth(Boolean(d.authenticated)))
+    .catch(() => {});
+
+  try {
+    const res = await fetch('/api/profiles');
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || `Request failed with status ${res.status}`);
+    }
+
+    loadingEl.hidden = true;
+
+    const profiles = (data.profiles || []).slice().sort((a, b) =>
+      String(a.name || a.slug).localeCompare(String(b.name || b.slug), undefined, {
+        sensitivity: 'base',
+      })
+    );
+
+    subtitleEl.textContent = `${profiles.length} saved dating profile${
+      profiles.length === 1 ? '' : 's'
+    } across Azeroth, sorted A–Z.`;
+
+    if (profiles.length === 0) {
+      gridEl.innerHTML = `
+        <div class="char-card" style="grid-column: 1 / -1;">
+          <p style="margin:0; color:var(--text-muted);">
+            No dating profiles have been generated yet.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    gridEl.innerHTML = profiles
+      .map((p) => {
+        if (p.slug && p.name) {
+          knownCharacterNames.set(p.slug, p.name);
+        }
+        const classColor = CLASS_COLORS[p.class] || '#f8f5fc';
+        const specClass = [p.activeSpec, p.class].filter(Boolean).join(' ');
+        const details = [p.gender, p.race, specClass, p.faction]
+          .filter(Boolean)
+          .join(' · ');
+
+        return `
+          <div class="char-card">
+            <div>
+              <div class="char-card-top">
+                <div class="char-card-identity">
+                  ${
+                    p.avatar
+                      ? `<img src="${escapeHtml(p.avatar)}" alt="${escapeHtml(p.name)}" class="char-card-avatar" />`
+                      : ''
+                  }
+                  <div>
+                    <h3 class="char-card-name" style="color:${escapeHtml(classColor)}">
+                      ${escapeHtml(p.name)}
+                    </h3>
+                    <div class="char-card-meta">${escapeHtml(details || 'Hero of Azeroth')}</div>
+                  </div>
+                </div>
+                ${
+                  p.level != null
+                    ? `<span class="char-card-lvl">Lv ${escapeHtml(p.level)}</span>`
+                    : ''
+                }
+              </div>
+              ${
+                p.tagline
+                  ? `<p class="char-card-tagline">"${escapeHtml(p.tagline)}"</p>`
+                  : ''
+              }
+            </div>
+            <div class="char-card-actions">
+              <a href="/${encodeURIComponent(p.slug)}" class="btn btn-primary btn-sm" data-nav-slug="${escapeHtml(p.slug)}" data-nav-name="${escapeHtml(p.name)}">
+                💘 View Dating Profile
+              </a>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+
+    gridEl.querySelectorAll('a[data-nav-slug]').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateToProfile(link.dataset.navSlug, false, link.dataset.navName);
+      });
+    });
+  } catch (err) {
+    loadingEl.hidden = true;
+    errorEl.textContent = err.message || 'Could not load profiles list.';
+    errorEl.hidden = false;
+  }
+}
+
 async function initProfileView(rawSlug, forceRefresh = false, explicitName = null) {
   const slug = toSlug(rawSlug);
   const displayName = getDisplayName(slug, explicitName);
   document.getElementById('home-view').hidden = true;
+  document.getElementById('list-view').hidden = true;
   document.getElementById('profile-view').hidden = false;
 
   const loadingEl = document.getElementById('profile-loading');
@@ -471,6 +587,8 @@ function handleRoute() {
 
   if (!path || path === 'index.html') {
     initHomeView();
+  } else if (path.toLowerCase() === 'list') {
+    initListView();
   } else {
     initProfileView(decodeURIComponent(path), forceRefresh);
   }
