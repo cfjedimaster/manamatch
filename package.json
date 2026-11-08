@@ -1,0 +1,15 @@
+{
+  "name": "manamatch",
+  "version": "1.0.0",
+  "description": "ManaMatch - World of Warcraft: Forever Dating Profile Generator",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "@netlify/blobs": "^8.1.0",
+    "@netlify/functions": "^3.0.0"
+  }
+}

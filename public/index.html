@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ManaMatch — Find Your Soulbound in Azeroth</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow-2" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="/" class="brand" id="brand-link">
+          <span class="brand-icon" aria-hidden="true">💘</span>
+          <div class="brand-text">
+            <span class="brand-name">ManaMatch</span>
+            <span class="brand-sub">Soulbound Dating for Azeroth</span>
+          </div>
+        </a>
+
+        <div class="header-actions" id="header-actions">
+          <a href="/api/auth/login" class="btn btn-bnet btn-sm" id="nav-login-btn">
+            <span class="bnet-icon" aria-hidden="true">⚔️</span>
+            Login with Battle.net
+          </a>
+          <a href="/" class="btn btn-ghost btn-sm" id="nav-chars-btn" hidden>
+            My Characters
+          </a>
+          <a href="/api/auth/logout" class="btn btn-outline btn-sm" id="nav-logout-btn" hidden>
+            Log Out
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container main-content">
+      <!-- ==================== HOME VIEW (/) ==================== -->
+      <section id="home-view" hidden>
+        <div class="hero-card">
+          <div class="hero-badge">✨ Azeroth's Premier Matchmaking Service</div>
+          <h1 class="hero-title">
+            Stop Looking for Love in <span class="text-gradient">Trade Chat</span>.
+          </h1>
+          <p class="hero-lead">
+            <strong>ManaMatch</strong> turns your <em>World of Warcraft: Forever</em> character into a
+            tongue-in-cheek dating profile. Connect your Battle.net account, pick your character, and
+            we'll craft your bio, likes &amp; dislikes, and 4 cute dating app photos straight from
+            your Armory data.
+          </p>
+
+          <div id="auth-error-banner" class="alert alert-error" hidden></div>
+
+          <!-- Logged Out CTA -->
+          <div id="logged-out-cta" class="hero-cta-box">
+            <a href="/api/auth/login" class="btn btn-bnet btn-lg">
+              <span class="bnet-icon" aria-hidden="true">🛡️</span>
+              Login with Battle.net
+            </a>
+            <p class="cta-note">
+              Uses official Battle.net OAuth (<code>wow.profile</code> scope) to list your WoW Forever characters.
+            </p>
+          </div>
+
+          <!-- Character Picker (Shown after OAuth Login) -->
+          <div id="character-picker-section" class="picker-section" hidden>
+            <div class="picker-header">
+              <div>
+                <h2 class="picker-title">Choose Your WoW Forever Character</h2>
+                <p class="picker-subtitle">
+                  Pick a character below to view or generate their ManaMatch dating profile.
+                </p>
+              </div>
+            </div>
+
+            <div id="characters-loading" class="loading-inline" hidden>
+              <div class="spinner spinner-sm"></div>
+              <span>Summoning your WoW Forever characters from Battle.net...</span>
+            </div>
+
+            <div id="characters-error" class="alert alert-error" hidden></div>
+
+            <div id="characters-grid" class="characters-grid"></div>
+          </div>
+        </div>
+
+        <div class="features-row">
+          <div class="feature-card">
+            <div class="feature-emoji">📜</div>
+            <h3>Real Armory Stats</h3>
+            <p>
+              Pulls your race, class, spec, gear, professions, mounts, battle pets, and reputations
+              from the Forever API.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-emoji">💬</div>
+            <h3>Tongue-in-Cheek Bio</h3>
+            <p>
+              Turns your character summary into a witty tagline, dating bio, likes,
+              and dealbreakers.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-emoji">📸</div>
+            <h3>4 Cute Dating Pics</h3>
+            <p>
+              Uses your character render to generate 4 wholesome dating-app photos—tavern winks,
+              golden-hour smiles, and playful flexes.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== PROFILE VIEW (/:slug) ==================== -->
+      <section id="profile-view" hidden>
+        <!-- Loading State -->
+        <div id="profile-loading" class="state-card" hidden>
+          <div class="spinner"></div>
+          <h2 id="profile-loading-title">Consulting the Matchmakers of Azeroth...</h2>
+          <p id="profile-loading-sub" class="muted">
+            Fetching World of Warcraft: Forever Armory data and crafting your dating profile.
+          </p>
+        </div>
+
+        <!-- Error State -->
+        <div id="profile-error" class="state-card state-error" hidden>
+          <div class="state-icon">💔</div>
+          <h2>Matchmaking Fizzled</h2>
+          <p id="profile-error-msg" class="muted"></p>
+          <div class="state-actions">
+            <button type="button" id="profile-retry-btn" class="btn btn-primary">
+              Try Again
+            </button>
+            <a href="/" class="btn btn-ghost">Back to Home</a>
+          </div>
+        </div>
+
+        <!-- Loaded Profile Content -->
+        <div id="profile-content" class="profile-layout" hidden>
+          <!-- Top Profile Card -->
+          <div class="dating-header-card">
+            <div class="dating-header-main">
+              <div class="avatar-wrap">
+                <img id="prof-avatar" class="prof-avatar" alt="Character Avatar" hidden />
+                <div id="prof-avatar-fallback" class="prof-avatar-fallback">⚔️</div>
+                <span id="prof-level-badge" class="level-pill">80</span>
+              </div>
+
+              <div class="identity-col">
+                <div class="badges-row">
+                  <span id="prof-faction-pill" class="pill pill-faction">Azeroth</span>
+                  <span id="prof-race-pill" class="pill">Race</span>
+                  <span id="prof-class-pill" class="pill pill-class">Class</span>
+                  <span id="prof-guild-pill" class="pill" hidden></span>
+                </div>
+
+                <div id="prof-title" class="prof-title-label" hidden></div>
+                <h1 id="prof-name" class="prof-name">Character Name</h1>
+
+                <blockquote id="prof-tagline" class="prof-tagline">
+                  "Tagline goes here..."
+                </blockquote>
+              </div>
+            </div>
+
+            <div class="dating-header-toolbar">
+              <div class="permalink-info">
+                <span class="permalink-badge" id="prof-cache-badge">Saved Profile</span>
+                <code id="prof-slug-code" class="slug-code">/character-slug</code>
+              </div>
+              <div class="toolbar-buttons">
+                <button type="button" id="copy-link-btn" class="btn btn-ghost btn-sm">
+                  🔗 Copy Profile Link
+                </button>
+                <button type="button" id="regenerate-btn" class="btn btn-outline btn-sm" title="Re-fetch WoW Forever character data and regenerate profile & photos">
+                  🔄 Update Profile
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Dating App Pictures Grid -->
+          <section class="section-block">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">📸 Dating App Photos</h2>
+                <p class="section-sub">
+                  Candid shots from across Azeroth
+                </p>
+              </div>
+            </div>
+
+            <div id="photos-grid" class="photos-grid">
+              <!-- Populated dynamically with 4 photo slots -->
+            </div>
+          </section>
+
+          <!-- Bio + Likes/Dislikes Grid -->
+          <div class="profile-details-grid">
+            <article class="card bio-card">
+              <div class="card-header">
+                <h2>💌 About Me</h2>
+              </div>
+              <div id="prof-bio" class="bio-body"></div>
+            </article>
+
+            <div class="likes-dislikes-col">
+              <article class="card likes-card">
+                <div class="card-header">
+                  <h2>💚 Green Flags &amp; Likes</h2>
+                </div>
+                <ul id="prof-likes" class="trait-list likes-list"></ul>
+              </article>
+
+              <article class="card dislikes-card">
+                <div class="card-header">
+                  <h2>🚩 Swipe Left If (Dislikes)</h2>
+                </div>
+                <ul id="prof-dislikes" class="trait-list dislikes-list"></ul>
+              </article>
+            </div>
+          </div>
+
+          <!-- Source Character Paragraph Inspector -->
+          <details class="card source-paragraph-drawer">
+            <summary>
+              <span>🔍 View Character Summary Paragraph</span>
+            </summary>
+            <div class="drawer-body">
+              <p id="prof-source-paragraph" class="source-paragraph-text"></p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <!-- Lightbox Modal for Photos -->
+    <div id="lightbox-modal" class="lightbox-modal" hidden>
+      <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+      <div class="lightbox-content">
+        <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">✕</button>
+        <img id="lightbox-img" class="lightbox-img" alt="Dating profile photo" />
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
