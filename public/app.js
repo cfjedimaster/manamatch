@@ -254,10 +254,14 @@ function loadSinglePhoto(slug, index, label, typeId = '', forceRefresh = false) 
     <span>Developing "${escapeHtml(label)}"...</span>
   `;
 
-  const params = new URLSearchParams({ t: String(Date.now()) });
+  const params = new URLSearchParams();
   if (typeId) params.set('type', typeId);
-  if (forceRefresh) params.set('refresh', '1');
-  const photoUrl = `/api/profile/${encodeURIComponent(slug)}/photo/${index}?${params.toString()}`;
+  if (forceRefresh) {
+    params.set('refresh', '1');
+    params.set('t', String(Date.now()));
+  }
+  const qs = params.toString();
+  const photoUrl = `/api/profile/${encodeURIComponent(slug)}/photo/${index}${qs ? `?${qs}` : ''}`;
 
   imgEl.onload = () => {
     loaderEl.hidden = true;

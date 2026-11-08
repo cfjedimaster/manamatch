@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { GoogleGenAI } from '@google/genai';
 
-// Set to true (or set ENABLE_CACHE=true in .env) when ready to enable Netlify Blobs caching
-export const ENABLE_BLOB_CACHE = false;
+// Enabled by default in production; set ENABLE_CACHE=false in .env to disable locally
+export const ENABLE_BLOB_CACHE = true;
 
 export function isCacheEnabled() {
   const envVal = getEnvValue('ENABLE_CACHE');
